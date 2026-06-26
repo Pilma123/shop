@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Product - KramLill</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/admin/dashboard">&larr; Back to Dashboard</a>
+        </nav>
+    </header>
+    <main style="max-width: 600px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+        <h2>Edit Product: {{ product.name }}</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <div style="margin-bottom: 15px;">
+                <label for="name">Product Name (Required):</label><br>
+                <input type="text" id="name" name="name" value="{{ product.name }}" required style="width: 100%;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="description">Description:</label><br>
+                <textarea id="description" name="description" rows="4" style="width: 100%;">{{ product.description }}</textarea>
+            </div>
+            
+            <div style="margin-bottom: 15px; display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <label for="price">Price ($) (Required):</label><br>
+                    <input type="number" id="price" name="price" step="0.01" min="0" value="{{ product.price }}" required style="width: 100%;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="stock">Stock Quantity:</label><br>
+                    <input type="number" id="stock" name="stock" min="0" value="{{ product.stock }}" required style="width: 100%;">
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="image">Replace Product Image (Optional):</label><br>
+                {% if product.image_filename %}
+                    <div style="margin-bottom: 10px;">
+                        <span style="font-size: 0.9em; color: #555;">Current image:</span><br>
+                        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}" style="max-width: 150px; border: 1px solid #ccc; margin-top: 5px;">
+                    </div>
+                {% endif %}
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="where_to_get">Where to get it:</label><br>
+                <textarea id="where_to_get" name="where_to_get" rows="2" style="width: 100%;">{{ product.where_to_get }}</textarea>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="instagram_url">Instagram Post/Profile Link:</label><br>
+                <input type="url" id="instagram_url" name="instagram_url" value="{{ product.instagram_url or '' }}" style="width: 100%;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="phone">Phone Contact Number:</label><br>
+                <input type="text" id="phone" name="phone" value="{{ product.phone or '' }}" style="width: 100%;">
+            </div>
+            
+            <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Changes</button>
+        </form>
+    </main>
+</body>
+</html>

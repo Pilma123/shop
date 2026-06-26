@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KramLill - Products</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/">Home</a> | 
+            <a href="/products">Products</a> | 
+            <a href="/admin/login">Admin Login</a>
+        </nav>
+    </header>
+    <main>
+        <h1>Our Products</h1>
+        
+        <!-- Simple Search Bar -->
+        <form method="GET" action="/products" style="margin-bottom: 20px;">
+            <input type="text" name="search" placeholder="Search products..." value="{{ search }}">
+            <button type="submit">Search</button>
+            {% if search %}
+                <a href="/products">Clear</a>
+            {% endif %}
+        </form>
+
+        <div class="products-grid">
+            {% for product in products %}
+                <div class="product-card">
+                    {% if product.image_filename %}
+                        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}" style="max-width: 200px; display: block; margin-bottom: 10px;">
+                    {% else %}
+                        <div style="width: 200px; height: 150px; background: #eee; line-height: 150px; text-align: center; margin-bottom: 10px;">No Image</div>
+                    {% endif %}
+                    <h2>{{ product.name }}</h2>
+                    <p><strong>Price:</strong> ${{ "%.2f"|format(product.price) }}</p>
+                    <p>{{ product.description }}</p>
+                    <p><strong>Where to get:</strong> {{ product.where_to_get }}</p>
+                    <div class="product-links">
+                        {% if product.instagram_url %}
+                            <a href="{{ product.instagram_url }}" target="_blank">Instagram</a>
+                        {% endif %}
+                        {% if product.phone %}
+                            <a href="tel:{{ product.phone }}">Call: {{ product.phone }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <p>No products available yet.</p>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

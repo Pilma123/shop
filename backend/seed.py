@@ -1,0 +1,62 @@
+import os
+from werkzeug.security import generate_password_hash
+from app import app, db
+from models import User, Product
+
+def seed():
+    with app.app_context():
+        db.create_all()
+        print("Database tables created.")
+        
+        username = input("Admin username [admin]: ").strip() or "admin"
+        password = ""
+        while not password:
+            password = input("Admin password: ").strip()
+            if not password:
+                print("Password cannot be empty.")
+                
+        # Hash password
+        pwd_hash = generate_password_hash(password)
+        
+        # Check if user exists
+        user = User.query.filter_by(username=username).first()
+        if user:
+            user.password_hash = pwd_hash
+            print(f"Updated password for existing user '{username}'.")
+        else:
+            user = User(username=username, password_hash=pwd_hash)
+            db.session.add(user)
+            print(f"Created admin user '{username}'.")
+            
+        # Seed some initial sample products if none exist
+        if Product.query.count() == 0:
+            sample_products = [
+                Product(
+                    name="KramLill Classic Mug",
+                    description="A beautiful handmade ceramic mug, perfect for your morning coffee.",
+                    price=19.99,
+                    stock=10,
+                    image_filename=None,
+                    where_to_get="Available at our physical shop.",
+                    instagram_url="https://instagram.com/kramlill",
+                    phone="+4612345678"
+                ),
+                Product(
+                    name="KramLill Woolen Scarf",
+                    description="Soft, warm scarf made from 100% organic local wool.",
+                    price=45.00,
+                    stock=5,
+                    image_filename=None,
+                    where_to_get="Order by calling us directly or sending a DM.",
+                    instagram_url="https://instagram.com/kramlill",
+                    phone="+4612345678"
+                )
+            ]
+            db.session.bulk_save_objects(sample_products)
+            print("Added sample products.")
+            
+        db.session.commit()
+        print("Database seeded successfully.")
+
+if __name__ == "__main__":
+    seed()

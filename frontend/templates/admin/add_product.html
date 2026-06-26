@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - KramLill</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/admin/dashboard">&larr; Back to Dashboard</a>
+        </nav>
+    </header>
+    <main style="max-width: 600px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+        <h2>Add New Product</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <div style="margin-bottom: 15px;">
+                <label for="name">Product Name (Required):</label><br>
+                <input type="text" id="name" name="name" required style="width: 100%;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="description">Description:</label><br>
+                <textarea id="description" name="description" rows="4" style="width: 100%;"></textarea>
+            </div>
+            
+            <div style="margin-bottom: 15px; display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <label for="price">Price ($) (Required):</label><br>
+                    <input type="number" id="price" name="price" step="0.01" min="0" required style="width: 100%;">
+                </div>
+                <div style="flex: 1;">
+                    <label for="stock">Stock Quantity:</label><br>
+                    <input type="number" id="stock" name="stock" min="0" value="0" required style="width: 100%;">
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="image">Product Image:</label><br>
+                <input type="file" id="image" name="image" accept="image/*">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="where_to_get">Where to get it:</label><br>
+                <textarea id="where_to_get" name="where_to_get" rows="2" style="width: 100%;" placeholder="e.g., At our storefront, or call us."></textarea>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="instagram_url">Instagram Post/Profile Link:</label><br>
+                <input type="url" id="instagram_url" name="instagram_url" placeholder="https://instagram.com/..." style="width: 100%;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="phone">Phone Contact Number:</label><br>
+                <input type="text" id="phone" name="phone" placeholder="e.g., +46 123 456 78" style="width: 100%;">
+            </div>
+            
+            <button type="submit" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Product</button>
+        </form>
+    </main>
+</body>
+</html>
