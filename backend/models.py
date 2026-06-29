@@ -19,3 +19,5 @@ class Product(db.Model):
     where_to_get = db.Column(db.Text, nullable=True)
     instagram_url = db.Column(db.String(255), nullable=True)
     phone = db.Column(db.String(50), nullable=True)
+    category = db.Column(db.String(50), nullable=False, default='Normal')
+
