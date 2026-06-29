@@ -40,7 +40,11 @@
                 {% if product.image_filename %}
                     <div style="margin-bottom: 10px;">
                         <span style="font-size: 0.9em; color: #555;">Current image:</span><br>
-                        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}" style="max-width: 150px; border: 1px solid #ccc; margin-top: 5px;">
+                        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}" style="max-width: 150px; border: 1px solid #ccc; margin-top: 5px; display: block; margin-bottom: 5px;">
+                        <label style="color: #dc3545; font-size: 0.9em; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                            <input type="checkbox" id="delete_image" name="delete_image" value="1">
+                            Remove current image
+                        </label>
                     </div>
                 {% endif %}
                 <input type="file" id="image" name="image" accept="image/*">

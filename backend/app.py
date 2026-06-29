@@ -205,6 +205,17 @@ def edit_product(product_id):
         except ValueError:
             product.stock = 0
 
+        # Handle optional image deletion
+        if request.form.get('delete_image') == '1':
+            if product.image_filename:
+                old_path = os.path.join(app.config['UPLOAD_FOLDER'], product.image_filename)
+                if os.path.exists(old_path):
+                    try:
+                        os.remove(old_path)
+                    except OSError:
+                        pass
+                product.image_filename = None
+
         # Handle optional new image upload
         file = request.files.get('image')
         if file and file.filename != '' and allowed_file(file.filename):
