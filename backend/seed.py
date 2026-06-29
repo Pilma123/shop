@@ -32,6 +32,39 @@ def seed():
         if Product.query.count() == 0:
             sample_products = [
                 Product(
+                    name="Golden Bloom Necklace",
+                    description="A luminous pendant encasing a delicate yellow flower in warm golden resin.",
+                    price=38.00,
+                    stock=8,
+                    image_filename=None,
+                    where_to_get="Order by calling us directly or sending a DM.",
+                    instagram_url="https://instagram.com/kramlill",
+                    phone="+4612345678",
+                    category="Pinned 1"
+                ),
+                Product(
+                    name="Forest Whisper Necklace",
+                    description="Soft fern fronds and tiny wildflowers suspended in clear resin.",
+                    price=40.00,
+                    stock=4,
+                    image_filename=None,
+                    where_to_get="Order by calling us directly or sending a DM.",
+                    instagram_url="https://instagram.com/kramlill",
+                    phone="+4612345678",
+                    category="Pinned 2"
+                ),
+                Product(
+                    name="Wildflower Teardrop Necklace",
+                    description="Tiny wildflowers pressed into a classic teardrop of crystal-clear resin.",
+                    price=42.00,
+                    stock=12,
+                    image_filename=None,
+                    where_to_get="Order by calling us directly or sending a DM.",
+                    instagram_url="https://instagram.com/kramlill",
+                    phone="+4612345678",
+                    category="Pinned 3"
+                ),
+                Product(
                     name="KramLill Classic Mug",
                     description="A beautiful handmade ceramic mug, perfect for your morning coffee.",
                     price=19.99,
@@ -39,7 +72,8 @@ def seed():
                     image_filename=None,
                     where_to_get="Available at our physical shop.",
                     instagram_url="https://instagram.com/kramlill",
-                    phone="+4612345678"
+                    phone="+4612345678",
+                    category="Normal"
                 ),
                 Product(
                     name="KramLill Woolen Scarf",
@@ -49,7 +83,8 @@ def seed():
                     image_filename=None,
                     where_to_get="Order by calling us directly or sending a DM.",
                     instagram_url="https://instagram.com/kramlill",
-                    phone="+4612345678"
+                    phone="+4612345678",
+                    category="Normal"
                 )
             ]
             db.session.bulk_save_objects(sample_products)

@@ -45,7 +45,12 @@ def check_admin():
 # Public routes
 @app.route('/')
 def index():
-    return render_template('index.html')
+    pinned_1 = Product.query.filter_by(category='Pinned 1').first()
+    pinned_2 = Product.query.filter_by(category='Pinned 2').first()
+    pinned_3 = Product.query.filter_by(category='Pinned 3').first()
+    normal_products = Product.query.filter_by(category='Normal').all()
+    return render_template('index.html', pinned_1=pinned_1, pinned_2=pinned_2, pinned_3=pinned_3, normal_products=normal_products)
+
 
 @app.route('/products')
 def products():
@@ -89,8 +94,27 @@ def admin_logout():
 @app.route('/admin/dashboard')
 def admin_dashboard():
     check_admin()
-    all_products = Product.query.all()
-    return render_template('admin/dashboard.html', products=all_products)
+    filter_val = request.args.get('filter', 'all').strip()
+    
+    if filter_val == 'pinned':
+        dashboard_products = Product.query.filter(Product.category.like('Pinned%')).all()
+    elif filter_val == 'normal':
+        dashboard_products = Product.query.filter_by(category='Normal').all()
+    else:
+        dashboard_products = Product.query.all()
+        
+    pinned_1 = Product.query.filter_by(category='Pinned 1').first()
+    pinned_2 = Product.query.filter_by(category='Pinned 2').first()
+    pinned_3 = Product.query.filter_by(category='Pinned 3').first()
+    
+    return render_template(
+        'admin/dashboard.html', 
+        products=dashboard_products, 
+        current_filter=filter_val,
+        pinned_1=pinned_1,
+        pinned_2=pinned_2,
+        pinned_3=pinned_3
+    )
 
 @app.route('/admin/add-product', methods=['GET', 'POST'])
 def add_product():
@@ -103,6 +127,7 @@ def add_product():
         where_to_get = request.form.get('where_to_get', '').strip()
         instagram_url = request.form.get('instagram_url', '').strip()
         phone = request.form.get('phone', '').strip()
+        category = request.form.get('category', 'Normal').strip()
         
         # Parse numeric values safely
         try:
@@ -128,6 +153,12 @@ def add_product():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             image_filename = filename
 
+        # ponytail: swap logic - demote previous product in the same slot to 'Normal'
+        if category in ['Pinned 1', 'Pinned 2', 'Pinned 3']:
+            existing = Product.query.filter_by(category=category).first()
+            if existing:
+                existing.category = 'Normal'
+
         new_prod = Product(
             name=name,
             description=description,
@@ -136,7 +167,8 @@ def add_product():
             image_filename=image_filename,
             where_to_get=where_to_get,
             instagram_url=instagram_url,
-            phone=phone
+            phone=phone,
+            category=category
         )
         db.session.add(new_prod)
         db.session.commit()
@@ -155,6 +187,14 @@ def edit_product(product_id):
         product.where_to_get = request.form.get('where_to_get', '').strip()
         product.instagram_url = request.form.get('instagram_url', '').strip()
         product.phone = request.form.get('phone', '').strip()
+        category = request.form.get('category', 'Normal').strip()
+        
+        # ponytail: swap logic - demote previous product in the same slot to 'Normal'
+        if category in ['Pinned 1', 'Pinned 2', 'Pinned 3']:
+            existing = Product.query.filter_by(category=category).first()
+            if existing and existing.id != product.id:
+                existing.category = 'Normal'
+        product.category = category
         
         try:
             product.price = float(request.form.get('price', '0'))
