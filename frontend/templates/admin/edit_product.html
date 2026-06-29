@@ -40,14 +40,17 @@
                 {% if product.image_filename %}
                     <div style="margin-bottom: 10px;">
                         <span style="font-size: 0.9em; color: #555;">Current image:</span><br>
-                        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}" style="max-width: 150px; border: 1px solid #ccc; margin-top: 5px; display: block; margin-bottom: 5px;">
+                        <img id="current-image-preview" src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}" style="max-width: 150px; border: 1px solid #ccc; margin-top: 5px; display: block; margin-bottom: 5px; transition: opacity 0.3s ease;">
                         <label style="color: #dc3545; font-size: 0.9em; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
-                            <input type="checkbox" id="delete_image" name="delete_image" value="1">
+                            <input type="checkbox" id="delete_image" name="delete_image" value="1" onchange="if(this.checked) document.getElementById('current-image-preview').style.opacity = '0.3'; else document.getElementById('current-image-preview').style.opacity = '1';">
                             Remove current image
                         </label>
                     </div>
                 {% endif %}
-                <input type="file" id="image" name="image" accept="image/*">
+                <input type="file" id="image" name="image" accept="image/*" onchange="const file = this.files[0]; if (file) { const img = document.getElementById('new-preview-el') || document.getElementById('current-image-preview'); img.src = URL.createObjectURL(file); if (img.id === 'new-preview-el') img.style.display = 'block'; }">
+                {% if not product.image_filename %}
+                    <img id="new-preview-el" style="max-width: 150px; border: 1px solid #ccc; margin-top: 10px; display: none;" alt="Preview">
+                {% endif %}
             </div>
             
             <div style="margin-bottom: 15px;">

@@ -37,7 +37,8 @@
             
             <div style="margin-bottom: 15px;">
                 <label for="image">Product Image:</label><br>
-                <input type="file" id="image" name="image" accept="image/*">
+                <input type="file" id="image" name="image" accept="image/*" onchange="const file = this.files[0]; if (file) { const img = document.getElementById('preview-el'); img.src = URL.createObjectURL(file); img.style.display = 'block'; }">
+                <img id="preview-el" style="max-width: 150px; border: 1px solid #ccc; margin-top: 10px; display: none;" alt="Preview">
             </div>
             
             <div style="margin-bottom: 15px;">
