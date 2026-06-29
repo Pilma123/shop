@@ -2,7 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, abort
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
-from models import db, User, Product
+from models import db, User, Product, ProductImage, SiteSettings
 
 app = Flask(
     __name__,
@@ -37,6 +37,16 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def save_file(file):
+    filename = secure_filename(file.filename)
+    base, ext = os.path.splitext(filename)
+    counter = 1
+    while os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+        filename = f"{base}_{counter}{ext}"
+        counter += 1
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    return filename
+
 # Helper to check if logged in
 def check_admin():
     if not session.get('is_admin'):
@@ -49,7 +59,8 @@ def index():
     pinned_2 = Product.query.filter_by(category='Pinned 2').first()
     pinned_3 = Product.query.filter_by(category='Pinned 3').first()
     normal_products = Product.query.filter_by(category='Normal').all()
-    return render_template('index.html', pinned_1=pinned_1, pinned_2=pinned_2, pinned_3=pinned_3, normal_products=normal_products)
+    settings = SiteSettings.query.get(1)
+    return render_template('index.html', pinned_1=pinned_1, pinned_2=pinned_2, pinned_3=pinned_3, normal_products=normal_products, settings=settings)
 
 
 @app.route('/products')
@@ -139,19 +150,11 @@ def add_product():
         except ValueError:
             stock = 0
             
-        # File upload
+        # Primary image upload
         image_filename = None
         file = request.files.get('image')
         if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            # Add uniqueness to filename if it exists
-            base, ext = os.path.splitext(filename)
-            counter = 1
-            while os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
-                filename = f"{base}_{counter}{ext}"
-                counter += 1
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            image_filename = filename
+            image_filename = save_file(file)
 
         # ponytail: swap logic - demote previous product in the same slot to 'Normal'
         if category in ['Pinned 1', 'Pinned 2', 'Pinned 3']:
@@ -171,6 +174,14 @@ def add_product():
             category=category
         )
         db.session.add(new_prod)
+        db.session.flush()
+
+        # Gallery images
+        for gfile in request.files.getlist('gallery_images'):
+            if gfile and gfile.filename != '' and allowed_file(gfile.filename):
+                gname = save_file(gfile)
+                db.session.add(ProductImage(product_id=new_prod.id, filename=gname))
+
         db.session.commit()
         return redirect(url_for('admin_dashboard'))
 
@@ -216,27 +227,24 @@ def edit_product(product_id):
                         pass
                 product.image_filename = None
 
-        # Handle optional new image upload
+        # Handle optional new primary image upload
         file = request.files.get('image')
         if file and file.filename != '' and allowed_file(file.filename):
-            # Delete old image file if it exists
             if product.image_filename:
                 old_path = os.path.join(app.config['UPLOAD_FOLDER'], product.image_filename)
                 if os.path.exists(old_path):
                     try:
                         os.remove(old_path)
                     except OSError:
-                        pass # Ignore if failed to delete
-            
-            filename = secure_filename(file.filename)
-            base, ext = os.path.splitext(filename)
-            counter = 1
-            while os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
-                filename = f"{base}_{counter}{ext}"
-                counter += 1
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            product.image_filename = filename
-            
+                        pass
+            product.image_filename = save_file(file)
+
+        # Gallery images — add new ones
+        for gfile in request.files.getlist('gallery_images'):
+            if gfile and gfile.filename != '' and allowed_file(gfile.filename):
+                gname = save_file(gfile)
+                db.session.add(ProductImage(product_id=product.id, filename=gname))
+
         db.session.commit()
         return redirect(url_for('admin_dashboard'))
 
@@ -246,19 +254,52 @@ def edit_product(product_id):
 def delete_product(product_id):
     check_admin()
     product = Product.query.get_or_404(product_id)
-    
-    # Delete image from uploads
-    if product.image_filename:
-        img_path = os.path.join(app.config['UPLOAD_FOLDER'], product.image_filename)
-        if os.path.exists(img_path):
+
+    for filename in product.all_filenames:
+        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(path):
             try:
-                os.remove(img_path)
+                os.remove(path)
             except OSError:
                 pass
-                
+
     db.session.delete(product)
     db.session.commit()
     return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/delete-gallery-image/<int:image_id>', methods=['POST'])
+def delete_gallery_image(image_id):
+    check_admin()
+    img = ProductImage.query.get_or_404(image_id)
+    product_id = img.product_id
+    path = os.path.join(app.config['UPLOAD_FOLDER'], img.filename)
+    if os.path.exists(path):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+    db.session.delete(img)
+    db.session.commit()
+    return redirect(url_for('edit_product', product_id=product_id))
+
+@app.route('/admin/settings', methods=['GET', 'POST'])
+def admin_settings():
+    check_admin()
+    settings = SiteSettings.query.get(1)
+    if not settings:
+        settings = SiteSettings(id=1)
+        db.session.add(settings)
+        db.session.commit()
+
+    if request.method == 'POST':
+        settings.phone = request.form.get('phone', '').strip() or None
+        settings.instagram_url = request.form.get('instagram_url', '').strip() or None
+        settings.facebook_url = request.form.get('facebook_url', '').strip() or None
+        settings.email = request.form.get('email', '').strip() or None
+        db.session.commit()
+        return redirect(url_for('admin_settings'))
+
+    return render_template('admin/settings.html', settings=settings)
 
 if __name__ == '__main__':
     # ponytail: simple sqlite initialisation in app if not seeded

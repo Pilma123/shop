@@ -10,6 +10,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
+{# Macro: builds JSON array of all image URLs for a product #}
+{% macro gallery_json(product) -%}
+{%- set ns = namespace(urls=[]) -%}
+{%- if product.image_filename -%}{%- set ns.urls = ns.urls + [url_for('static', filename='uploads/' + product.image_filename)] -%}{%- endif -%}
+{%- for gi in product.gallery_images -%}{%- set ns.urls = ns.urls + [url_for('static', filename='uploads/' + gi.filename)] -%}{%- endfor -%}
+{{- ns.urls | tojson -}}
+{%- endmacro %}
+
     <header class="site-header">
         <nav class="nav-left desktop-nav">
             <a href="/" class="nav-link">Home</a>
@@ -23,13 +32,19 @@
     </header>
 
     <main class="landing-container">
-        <!-- Responsive Background Image -->
-        <img src="{{ url_for('static', filename='images/desktop_landingpage.png') }}" class="landing-bg" alt="Kramlill background mockup">
-        
-        <!-- Pinned Slot 1 (Left Box) -->
+        <img src="{{ url_for('static', filename='images/landingpage_background2.png') }}" class="landing-bg" alt="Kramlill background mockup">
+
+        <!-- Pinned Slot 1 -->
         <div class="pinned-slot slot-1">
             {% if pinned_1 %}
-                <div class="pinned-product-card">
+                <div class="pinned-product-card product-clickable"
+                     data-name="{{ pinned_1.name }}"
+                     data-price="{{ '%.2f'|format(pinned_1.price) }}"
+                     data-description="{{ pinned_1.description or '' }}"
+                     data-where="{{ pinned_1.where_to_get or '' }}"
+                     data-instagram="{{ pinned_1.instagram_url or '' }}"
+                     data-phone="{{ pinned_1.phone or '' }}"
+                     data-gallery='{{ gallery_json(pinned_1) }}'>
                     <div class="pinned-image-container">
                         {% if pinned_1.image_filename %}
                             <img src="{{ url_for('static', filename='uploads/' + pinned_1.image_filename) }}" alt="{{ pinned_1.name }}">
@@ -39,13 +54,12 @@
                     </div>
                     <div class="pinned-details">
                         <h3 class="pinned-name">{{ pinned_1.name }}</h3>
-                        <p class="pinned-price">${{ "%.2f"|format(pinned_1.price) }}</p>
                         <div class="pinned-actions">
                             {% if pinned_1.instagram_url %}
-                                <a href="{{ pinned_1.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" aria-label="Order via Instagram">Instagram</a>
+                                <a href="{{ pinned_1.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" onclick="event.stopPropagation()">Instagram</a>
                             {% endif %}
                             {% if pinned_1.phone %}
-                                <a href="tel:{{ pinned_1.phone }}" class="pinned-btn phone-btn" aria-label="Order via Phone">Order</a>
+                                <a href="tel:{{ pinned_1.phone }}" class="pinned-btn phone-btn" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
                         </div>
                     </div>
@@ -55,10 +69,17 @@
             {% endif %}
         </div>
 
-        <!-- Pinned Slot 2 (Center Box) -->
+        <!-- Pinned Slot 2 -->
         <div class="pinned-slot slot-2">
             {% if pinned_2 %}
-                <div class="pinned-product-card">
+                <div class="pinned-product-card product-clickable"
+                     data-name="{{ pinned_2.name }}"
+                     data-price="{{ '%.2f'|format(pinned_2.price) }}"
+                     data-description="{{ pinned_2.description or '' }}"
+                     data-where="{{ pinned_2.where_to_get or '' }}"
+                     data-instagram="{{ pinned_2.instagram_url or '' }}"
+                     data-phone="{{ pinned_2.phone or '' }}"
+                     data-gallery='{{ gallery_json(pinned_2) }}'>
                     <div class="pinned-image-container">
                         {% if pinned_2.image_filename %}
                             <img src="{{ url_for('static', filename='uploads/' + pinned_2.image_filename) }}" alt="{{ pinned_2.name }}">
@@ -68,13 +89,12 @@
                     </div>
                     <div class="pinned-details">
                         <h3 class="pinned-name">{{ pinned_2.name }}</h3>
-                        <p class="pinned-price">${{ "%.2f"|format(pinned_2.price) }}</p>
                         <div class="pinned-actions">
                             {% if pinned_2.instagram_url %}
-                                <a href="{{ pinned_2.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" aria-label="Order via Instagram">Instagram</a>
+                                <a href="{{ pinned_2.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" onclick="event.stopPropagation()">Instagram</a>
                             {% endif %}
                             {% if pinned_2.phone %}
-                                <a href="tel:{{ pinned_2.phone }}" class="pinned-btn phone-btn" aria-label="Order via Phone">Order</a>
+                                <a href="tel:{{ pinned_2.phone }}" class="pinned-btn phone-btn" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
                         </div>
                     </div>
@@ -84,10 +104,17 @@
             {% endif %}
         </div>
 
-        <!-- Pinned Slot 3 (Right Box) -->
+        <!-- Pinned Slot 3 -->
         <div class="pinned-slot slot-3">
             {% if pinned_3 %}
-                <div class="pinned-product-card">
+                <div class="pinned-product-card product-clickable"
+                     data-name="{{ pinned_3.name }}"
+                     data-price="{{ '%.2f'|format(pinned_3.price) }}"
+                     data-description="{{ pinned_3.description or '' }}"
+                     data-where="{{ pinned_3.where_to_get or '' }}"
+                     data-instagram="{{ pinned_3.instagram_url or '' }}"
+                     data-phone="{{ pinned_3.phone or '' }}"
+                     data-gallery='{{ gallery_json(pinned_3) }}'>
                     <div class="pinned-image-container">
                         {% if pinned_3.image_filename %}
                             <img src="{{ url_for('static', filename='uploads/' + pinned_3.image_filename) }}" alt="{{ pinned_3.name }}">
@@ -97,13 +124,12 @@
                     </div>
                     <div class="pinned-details">
                         <h3 class="pinned-name">{{ pinned_3.name }}</h3>
-                        <p class="pinned-price">${{ "%.2f"|format(pinned_3.price) }}</p>
                         <div class="pinned-actions">
                             {% if pinned_3.instagram_url %}
-                                <a href="{{ pinned_3.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" aria-label="Order via Instagram">Instagram</a>
+                                <a href="{{ pinned_3.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" onclick="event.stopPropagation()">Instagram</a>
                             {% endif %}
                             {% if pinned_3.phone %}
-                                <a href="tel:{{ pinned_3.phone }}" class="pinned-btn phone-btn" aria-label="Order via Phone">Order</a>
+                                <a href="tel:{{ pinned_3.phone }}" class="pinned-btn phone-btn" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
                         </div>
                     </div>
@@ -114,12 +140,19 @@
         </div>
     </main>
 
-    <!-- Normal catalog grid shown at the bottom -->
+    <!-- Normal catalog grid -->
     <section class="normal-products-section">
         <h2 class="section-title">Our Catalog</h2>
         <div class="normal-grid">
             {% for product in normal_products %}
-                <div class="normal-card">
+                <div class="normal-card product-clickable"
+                     data-name="{{ product.name }}"
+                     data-price="{{ '%.2f'|format(product.price) }}"
+                     data-description="{{ product.description or '' }}"
+                     data-where="{{ product.where_to_get or '' }}"
+                     data-instagram="{{ product.instagram_url or '' }}"
+                     data-phone="{{ product.phone or '' }}"
+                     data-gallery='{{ gallery_json(product) }}'>
                     <div class="normal-image-container">
                         {% if product.image_filename %}
                             <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}">
@@ -133,10 +166,10 @@
                         <p class="normal-desc">{{ product.description }}</p>
                         <div class="normal-actions">
                             {% if product.instagram_url %}
-                                <a href="{{ product.instagram_url }}" target="_blank" class="normal-btn insta">Instagram</a>
+                                <a href="{{ product.instagram_url }}" target="_blank" class="normal-btn insta" onclick="event.stopPropagation()">Instagram</a>
                             {% endif %}
                             {% if product.phone %}
-                                <a href="tel:{{ product.phone }}" class="normal-btn call">Order</a>
+                                <a href="tel:{{ product.phone }}" class="normal-btn call" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
                         </div>
                     </div>
@@ -148,5 +181,189 @@
             {% endfor %}
         </div>
     </section>
+
+    <section class="catalog-footer"></section>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p class="footer-brand">Kramlill</p>
+            <div class="footer-contacts">
+                {% if settings and settings.phone %}
+                <a href="tel:{{ settings.phone }}" class="footer-contact-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.85a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>
+                    <span>{{ settings.phone }}</span>
+                </a>
+                {% endif %}
+                {% if settings and settings.instagram_url %}
+                <a href="{{ settings.instagram_url }}" target="_blank" class="footer-contact-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    <span>Instagram</span>
+                </a>
+                {% endif %}
+                {% if settings and settings.facebook_url %}
+                <a href="{{ settings.facebook_url }}" target="_blank" class="footer-contact-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                    <span>Facebook</span>
+                </a>
+                {% endif %}
+                {% if settings and settings.email %}
+                <a href="mailto:{{ settings.email }}" class="footer-contact-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    <span>{{ settings.email }}</span>
+                </a>
+                {% endif %}
+            </div>
+            <p class="footer-copy">&copy; {{ 2025 }} Kramlill</p>
+        </div>
+    </footer>
+
+    <!-- Product Modal -->
+    <div class="product-modal" id="product-modal" aria-hidden="true">
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal-panel">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div class="modal-image-side">
+                <div class="modal-carousel" id="modal-carousel"></div>
+                <button class="carousel-btn carousel-prev" id="carousel-prev">&#8249;</button>
+                <button class="carousel-btn carousel-next" id="carousel-next">&#8250;</button>
+                <div class="carousel-dots" id="carousel-dots"></div>
+                <div class="modal-no-image" id="modal-no-image">No Image</div>
+            </div>
+            <div class="modal-info-side">
+                <h2 class="modal-name" id="modal-name"></h2>
+                <p class="modal-price" id="modal-price"></p>
+                <p class="modal-desc" id="modal-desc"></p>
+                <p class="modal-where" id="modal-where"></p>
+                <div class="modal-actions" id="modal-actions"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Single-line title spacing
+        document.querySelectorAll('.pinned-name').forEach(function(el) {
+            var lineHeight = parseFloat(window.getComputedStyle(el).lineHeight);
+            if (el.offsetHeight <= lineHeight * 1.5) {
+                el.closest('.pinned-details').querySelector('.pinned-actions').style.marginTop = '10px';
+            }
+        });
+
+        // Carousel state
+        var carouselImgs = [];
+        var carouselIdx = 0;
+
+        function goTo(idx) {
+            var imgs = document.querySelectorAll('#modal-carousel .carousel-img');
+            var dots = document.querySelectorAll('#carousel-dots .carousel-dot');
+            if (!imgs.length) return;
+            imgs[carouselIdx].classList.remove('active');
+            if (dots[carouselIdx]) dots[carouselIdx].classList.remove('active');
+            carouselIdx = ((idx % carouselImgs.length) + carouselImgs.length) % carouselImgs.length;
+            imgs[carouselIdx].classList.add('active');
+            if (dots[carouselIdx]) dots[carouselIdx].classList.add('active');
+        }
+
+        document.getElementById('carousel-prev').addEventListener('click', function(e) {
+            e.stopPropagation();
+            goTo(carouselIdx - 1);
+        });
+        document.getElementById('carousel-next').addEventListener('click', function(e) {
+            e.stopPropagation();
+            goTo(carouselIdx + 1);
+        });
+
+        // Modal logic
+        var modal = document.getElementById('product-modal');
+        var overlay = document.getElementById('modal-overlay');
+        var closeBtn = document.getElementById('modal-close');
+        var carousel = document.getElementById('modal-carousel');
+        var dotsEl = document.getElementById('carousel-dots');
+        var noImgEl = document.getElementById('modal-no-image');
+        var prevBtn = document.getElementById('carousel-prev');
+        var nextBtn = document.getElementById('carousel-next');
+
+        document.querySelectorAll('.product-clickable').forEach(function(card) {
+            card.addEventListener('click', function() {
+                var d = card.dataset;
+
+                // Populate info
+                document.getElementById('modal-name').textContent = d.name || '';
+                document.getElementById('modal-price').textContent = d.price ? '$' + d.price : '';
+                document.getElementById('modal-desc').textContent = d.description || '';
+                var whereEl = document.getElementById('modal-where');
+                whereEl.textContent = d.where ? 'Available at: ' + d.where : '';
+                whereEl.style.display = d.where ? '' : 'none';
+
+                var actionsEl = document.getElementById('modal-actions');
+                actionsEl.innerHTML = '';
+                if (d.instagram) {
+                    var ig = document.createElement('a');
+                    ig.href = d.instagram; ig.target = '_blank';
+                    ig.className = 'modal-btn modal-btn-ig';
+                    ig.textContent = 'Instagram';
+                    actionsEl.appendChild(ig);
+                }
+                if (d.phone) {
+                    var ph = document.createElement('a');
+                    ph.href = 'tel:' + d.phone;
+                    ph.className = 'modal-btn modal-btn-order';
+                    ph.textContent = 'Order';
+                    actionsEl.appendChild(ph);
+                }
+
+                // Build carousel
+                var gallery = [];
+                try { gallery = JSON.parse(d.gallery || '[]'); } catch(e) {}
+                carouselImgs = gallery;
+                carouselIdx = 0;
+                carousel.innerHTML = '';
+                dotsEl.innerHTML = '';
+
+                if (gallery.length === 0) {
+                    noImgEl.style.display = 'flex';
+                    carousel.style.display = 'none';
+                    prevBtn.style.display = 'none';
+                    nextBtn.style.display = 'none';
+                    dotsEl.style.display = 'none';
+                } else {
+                    noImgEl.style.display = 'none';
+                    carousel.style.display = 'block';
+                    var showNav = gallery.length > 1;
+                    prevBtn.style.display = showNav ? '' : 'none';
+                    nextBtn.style.display = showNav ? '' : 'none';
+                    dotsEl.style.display = showNav ? '' : 'none';
+
+                    gallery.forEach(function(url, i) {
+                        var img = document.createElement('img');
+                        img.src = url;
+                        img.className = 'carousel-img' + (i === 0 ? ' active' : '');
+                        carousel.appendChild(img);
+
+                        if (showNav) {
+                            var dot = document.createElement('span');
+                            dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+                            dot.addEventListener('click', function(e) { e.stopPropagation(); goTo(i); });
+                            dotsEl.appendChild(dot);
+                        }
+                    });
+                }
+
+                modal.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            });
+        });
+
+        function closeModal() {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        closeBtn.addEventListener('click', closeModal);
+        overlay.addEventListener('click', closeModal);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+            if (e.key === 'ArrowLeft' && modal.classList.contains('open')) goTo(carouselIdx - 1);
+            if (e.key === 'ArrowRight' && modal.classList.contains('open')) goTo(carouselIdx + 1);
+        });
+    </script>
 </body>
 </html>

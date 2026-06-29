@@ -91,6 +91,25 @@
             </div>
 
             <div class="field">
+                <label>Gallery Images</label>
+                {% if product.gallery_images %}
+                <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+                    {% for gi in product.gallery_images %}
+                    <div style="position:relative;display:inline-block;">
+                        <img src="{{ url_for('static', filename='uploads/' + gi.filename) }}" style="width:90px;height:90px;object-fit:cover;border-radius:4px;border:1px solid #ccc;display:block;">
+                        <form method="POST" action="/admin/delete-gallery-image/{{ gi.id }}" style="margin:0;">
+                            <button type="submit" title="Remove" style="position:absolute;top:2px;right:2px;background:rgba(220,53,69,0.85);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer;padding:0;">&times;</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <label for="gallery_images" style="font-weight:normal;font-size:13px;">Add more gallery images:</label>
+                <input type="file" id="gallery_images" name="gallery_images" accept="image/*" multiple style="margin-top:4px;">
+                <div id="gallery-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+            </div>
+
+            <div class="field">
                 <label for="where_to_get">Where to get it</label>
                 <textarea id="where_to_get" name="where_to_get" rows="2">{{ product.where_to_get }}</textarea>
             </div>
@@ -186,6 +205,18 @@
                 }, 'image/jpeg', 0.92);
             });
         })();
+
+        // Gallery preview
+        document.getElementById('gallery_images').addEventListener('change', function () {
+            var preview = document.getElementById('gallery-preview');
+            preview.innerHTML = '';
+            Array.from(this.files).forEach(function (file) {
+                var img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #ccc;';
+                preview.appendChild(img);
+            });
+        });
     </script>
 </body>
 </html>
