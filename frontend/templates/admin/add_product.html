@@ -4,69 +4,174 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product - KramLill</title>
+    <style>
+        body { font-family: sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+        header { background: #222; padding: 12px 24px; }
+        header a { color: #fff; text-decoration: none; font-size: 14px; }
+        main { max-width: 640px; margin: 30px auto; padding: 28px; background: #fff; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        h2 { margin-top: 0; }
+        label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 4px; }
+        input[type=text], input[type=number], input[type=url], textarea, select {
+            width: 100%; box-sizing: border-box; padding: 8px 10px;
+            border: 1px solid #ccc; border-radius: 4px; font-size: 14px;
+        }
+        .field { margin-bottom: 16px; }
+        .row { display: flex; gap: 16px; }
+        .row .field { flex: 1; }
+        button[type=submit] { padding: 10px 24px; background: #2d6a4f; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; }
+        button[type=submit]:hover { background: #1b4332; }
+
+        /* Image editor */
+        .image-editor { display: none; margin-top: 12px; border: 1px solid #ddd; border-radius: 6px; padding: 16px; background: #fafafa; }
+        .image-editor canvas { max-width: 100%; display: block; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 12px; }
+        .resize-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .resize-controls input[type=number] { width: 90px; }
+        .resize-controls label { font-weight: normal; font-size: 13px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+        .dim-label { font-size: 13px; color: #555; }
+        .resize-hint { font-size: 12px; color: #888; margin-top: 6px; }
+    </style>
 </head>
 <body>
     <header>
-        <nav>
-            <a href="/admin/dashboard">&larr; Back to Dashboard</a>
-        </nav>
+        <nav><a href="/admin/dashboard">&larr; Back to Dashboard</a></nav>
     </header>
-    <main style="max-width: 600px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+    <main>
         <h2>Add New Product</h2>
-        <form method="POST" enctype="multipart/form-data">
-            <div style="margin-bottom: 15px;">
-                <label for="name">Product Name (Required):</label><br>
-                <input type="text" id="name" name="name" required style="width: 100%;">
+        <form method="POST" enctype="multipart/form-data" id="product-form">
+
+            <div class="field">
+                <label for="name">Product Name (Required)</label>
+                <input type="text" id="name" name="name" required>
             </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label for="description">Description:</label><br>
-                <textarea id="description" name="description" rows="4" style="width: 100%;"></textarea>
+
+            <div class="field">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4"></textarea>
             </div>
-            
-            <div style="margin-bottom: 15px; display: flex; gap: 20px;">
-                <div style="flex: 1;">
-                    <label for="price">Price ($) (Required):</label><br>
-                    <input type="number" id="price" name="price" step="0.01" min="0" required style="width: 100%;">
+
+            <div class="row">
+                <div class="field">
+                    <label for="price">Price ($) (Required)</label>
+                    <input type="number" id="price" name="price" step="0.01" min="0" required>
                 </div>
-                <div style="flex: 1;">
-                    <label for="stock">Stock Quantity:</label><br>
-                    <input type="number" id="stock" name="stock" min="0" value="0" required style="width: 100%;">
+                <div class="field">
+                    <label for="stock">Stock Quantity</label>
+                    <input type="number" id="stock" name="stock" min="0" value="0" required>
                 </div>
             </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label for="image">Product Image:</label><br>
+
+            <div class="field">
+                <label for="image">Product Image</label>
                 <input type="file" id="image" name="image" accept="image/*">
+                <div class="image-editor" id="image-editor">
+                    <canvas id="preview-canvas"></canvas>
+                    <div class="resize-controls">
+                        <span class="dim-label">W:</span>
+                        <input type="number" id="resize-width" min="10" max="4000">
+                        <span class="dim-label">H:</span>
+                        <input type="number" id="resize-height" min="10" max="4000">
+                        <label><input type="checkbox" id="lock-ratio" checked> Lock ratio</label>
+                    </div>
+                    <p class="resize-hint">Edit the width/height values to resize before uploading. The resized image will be submitted.</p>
+                </div>
             </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label for="where_to_get">Where to get it:</label><br>
-                <textarea id="where_to_get" name="where_to_get" rows="2" style="width: 100%;" placeholder="e.g., At our storefront, or call us."></textarea>
+
+            <div class="field">
+                <label for="where_to_get">Where to get it</label>
+                <textarea id="where_to_get" name="where_to_get" rows="2" placeholder="e.g., At our storefront, or call us."></textarea>
             </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label for="instagram_url">Instagram Post/Profile Link:</label><br>
-                <input type="url" id="instagram_url" name="instagram_url" placeholder="https://instagram.com/..." style="width: 100%;">
+
+            <div class="field">
+                <label for="instagram_url">Instagram Post/Profile Link</label>
+                <input type="url" id="instagram_url" name="instagram_url" placeholder="https://instagram.com/...">
             </div>
-            
-            <div style="margin-bottom: 20px;">
-                <label for="phone">Phone Contact Number:</label><br>
-                <input type="text" id="phone" name="phone" placeholder="e.g., +46 123 456 78" style="width: 100%;">
+
+            <div class="field">
+                <label for="phone">Phone Contact Number</label>
+                <input type="text" id="phone" name="phone" placeholder="e.g., +46 123 456 78">
             </div>
-            
-            <div style="margin-bottom: 20px;">
-                <label for="category">Category / Pinned Placement:</label><br>
-                <select id="category" name="category" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+
+            <div class="field">
+                <label for="category">Category / Pinned Placement</label>
+                <select id="category" name="category">
                     <option value="Normal" selected>Normal (Bottom Catalog Grid)</option>
-                    <option value="Pinned 1">Pinned Slot 1 (Left Background Outline)</option>
-                    <option value="Pinned 2">Pinned Slot 2 (Center Background Outline)</option>
-                    <option value="Pinned 3">Pinned Slot 3 (Right Background Outline)</option>
+                    <option value="Pinned 1">Pinned Slot 1 (Left)</option>
+                    <option value="Pinned 2">Pinned Slot 2 (Center)</option>
+                    <option value="Pinned 3">Pinned Slot 3 (Right)</option>
                 </select>
             </div>
-            
-            <button type="submit" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Add Product</button>
+
+            <button type="submit">Add Product</button>
         </form>
     </main>
+
+    <script>
+        (function () {
+            const fileInput = document.getElementById('image');
+            const editor = document.getElementById('image-editor');
+            const canvas = document.getElementById('preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const wInput = document.getElementById('resize-width');
+            const hInput = document.getElementById('resize-height');
+            const lockCb = document.getElementById('lock-ratio');
+            const form = document.getElementById('product-form');
+
+            let originalImg = null;
+            let ratio = 1;
+
+            fileInput.addEventListener('change', function () {
+                const file = this.files[0];
+                if (!file) { editor.style.display = 'none'; return; }
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    originalImg = new Image();
+                    originalImg.onload = function () {
+                        ratio = originalImg.naturalWidth / originalImg.naturalHeight;
+                        wInput.value = originalImg.naturalWidth;
+                        hInput.value = originalImg.naturalHeight;
+                        drawCanvas(originalImg.naturalWidth, originalImg.naturalHeight);
+                        editor.style.display = 'block';
+                    };
+                    originalImg.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+
+            wInput.addEventListener('input', function () {
+                if (lockCb.checked) hInput.value = Math.round(this.value / ratio);
+                drawCanvas(parseInt(wInput.value) || 1, parseInt(hInput.value) || 1);
+            });
+
+            hInput.addEventListener('input', function () {
+                if (lockCb.checked) wInput.value = Math.round(this.value * ratio);
+                drawCanvas(parseInt(wInput.value) || 1, parseInt(hInput.value) || 1);
+            });
+
+            function drawCanvas(w, h) {
+                if (!originalImg) return;
+                canvas.width = w;
+                canvas.height = h;
+                ctx.drawImage(originalImg, 0, 0, w, h);
+            }
+
+            form.addEventListener('submit', function (e) {
+                if (!originalImg || !fileInput.files.length) return;
+                e.preventDefault();
+                const w = parseInt(wInput.value) || originalImg.naturalWidth;
+                const h = parseInt(hInput.value) || originalImg.naturalHeight;
+                const offscreen = document.createElement('canvas');
+                offscreen.width = w;
+                offscreen.height = h;
+                offscreen.getContext('2d').drawImage(originalImg, 0, 0, w, h);
+                offscreen.toBlob(function (blob) {
+                    const resizedFile = new File([blob], 'product_image.jpg', { type: 'image/jpeg' });
+                    const dt = new DataTransfer();
+                    dt.items.add(resizedFile);
+                    fileInput.files = dt.files;
+                    form.submit();
+                }, 'image/jpeg', 0.92);
+            });
+        })();
+    </script>
 </body>
 </html>
