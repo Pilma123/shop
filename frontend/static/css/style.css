@@ -90,7 +90,7 @@ body {
 .landing-container {
     position: relative;
     width: 100%;
-    max-width: 1448px;
+    /* max-width: 1448px; */
     margin: 0 auto;
     background-color: var(--forest-green);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -111,7 +111,7 @@ body {
     justify-content: stretch;
     align-items: stretch;
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border-radius: 4px;
+    border-radius: 40px;
     overflow: hidden;
 }
 
@@ -120,24 +120,24 @@ body {
 }
 
 .slot-1 {
-    left: 17.27%;
-    top: 29.47%;
-    width: 21.06%;
-    height: 45.86%;
+    left: 20.3%;
+    top: 30.3%;
+    width: 18.2%;
+    height: 59.2%;
 }
 
 .slot-2 {
-    left: 42.13%;
-    top: 43.83%;
-    width: 21.41%;
-    height: 43.28%;
+    left: 39.8%;
+    top: 43.9%;
+    width: 18.8%;
+    height: 48.8%;
 }
 
 .slot-3 {
-    left: 69.06%;
-    top: 47.51%;
-    width: 20.37%;
-    height: 44.38%;
+    left: 59.5%;
+    top: 48.0%;
+    width: 18.6%;
+    height: 46.3%;
 }
 
 /* Pinned Product Cards inside outlines */
@@ -160,9 +160,12 @@ body {
 
 .pinned-image-container {
     width: 100%;
-    height: 60%;
+    height: calc(60% + 20px);
+    margin-top: 9px;
+    margin-left: 3px;
+    margin-right: 5px;
     overflow: hidden;
-    border-radius: 2px;
+    border-radius: 28px;
     background: rgba(28, 43, 26, 0.1);
 }
 
@@ -203,7 +206,7 @@ body {
     margin: 0;
     font-size: clamp(14px, 1.3vw, 22px);
     font-weight: 400;
-    color: var(--cream-gold);
+    color: var(--white);
     letter-spacing: 0.05em;
     line-height: 1.2;
 }
@@ -212,7 +215,7 @@ body {
     margin: 3px 0 8px 0;
     font-size: clamp(12px, 1vw, 18px);
     font-family: sans-serif;
-    color: var(--gold-accent);
+    color: var(--white);
     font-weight: 300;
 }
 
@@ -236,8 +239,8 @@ body {
 
 .instagram-btn {
     background: transparent;
-    border: 1px solid var(--gold-accent);
-    color: var(--cream-gold);
+    border: 1px solid var(--white);
+    color: var(--white);
 }
 
 .instagram-btn:hover {
@@ -271,10 +274,22 @@ body {
 
 /* Bottom Catalog Section */
 .normal-products-section {
-    max-width: 1200px;
-    margin: 60px auto;
-    padding: 0 40px;
+    width: 100%;
     box-sizing: border-box;
+    padding: 80px 52px;
+    background-image: url('../images/productpage_background4.png');
+    background-repeat: repeat;
+    background-size: auto;
+}
+
+.catalog-footer {
+    width: 100%;
+    min-height: 100vh;
+    background-image: url('../images/productpage-background1.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
 }
 
 .section-title {
@@ -284,7 +299,7 @@ body {
     text-align: center;
     margin-bottom: 40px;
     letter-spacing: 0.08em;
-    color: var(--forest-green);
+    color: var(--white);
     position: relative;
 }
 
@@ -425,6 +440,279 @@ body {
     color: #8a7c66;
     font-style: italic;
     padding: 40px;
+}
+
+/* Clickable cursor on product cards */
+.product-clickable { cursor: pointer; }
+
+/* Product Modal */
+.product-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+}
+.product-modal.open {
+    display: flex;
+}
+.modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 20, 10, 0.7);
+    backdrop-filter: blur(4px);
+}
+.modal-panel {
+    position: relative;
+    z-index: 101;
+    display: flex;
+    width: 98vw;
+    max-width: 1400px;
+    height: 92vh;
+    max-height: 96vh;
+    background: var(--cream-light);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    animation: modalIn 0.28s ease;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    z-index: 102;
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--forest-green);
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.modal-close:hover { opacity: 1; }
+
+.modal-image-side {
+    flex: 0 0 55%;
+    background: var(--forest-green);
+    overflow: hidden;
+    position: relative;
+}
+.modal-no-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(239,228,204,0.4);
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+/* Carousel */
+.modal-carousel {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+.carousel-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+.carousel-img.active {
+    opacity: 1;
+}
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(0,0,0,0.35);
+    border: none;
+    color: #fff;
+    font-size: 32px;
+    line-height: 1;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.carousel-btn:hover { background: rgba(0,0,0,0.6); }
+.carousel-prev { left: 0; border-radius: 0 4px 4px 0; }
+.carousel-next { right: 0; border-radius: 4px 0 0 4px; }
+.carousel-dots {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.45);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.carousel-dot.active { background: #fff; }
+
+.modal-info-side {
+    flex: 1;
+    padding: 44px 36px 36px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.modal-name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 30px;
+    font-weight: 400;
+    color: var(--forest-green);
+    margin: 0;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+}
+.modal-price {
+    font-family: sans-serif;
+    font-size: 18px;
+    color: var(--gold-accent);
+    margin: 0;
+}
+.modal-desc {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #4a5448;
+    margin: 0;
+    font-family: sans-serif;
+    white-space: pre-wrap;
+}
+.modal-where {
+    font-size: 14px;
+    color: #7a8878;
+    font-style: italic;
+    margin: 0;
+    font-family: sans-serif;
+}
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 20px;
+}
+.modal-btn {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    font-family: sans-serif;
+    font-size: 13px;
+    padding: 11px 16px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    transition: all 0.25s ease;
+}
+.modal-btn-ig {
+    background: transparent;
+    border: 1px solid var(--forest-green);
+    color: var(--forest-green);
+}
+.modal-btn-ig:hover {
+    background: var(--forest-green);
+    color: var(--white);
+}
+.modal-btn-order {
+    background: var(--gold-accent);
+    border: 1px solid var(--gold-accent);
+    color: var(--forest-green);
+    font-weight: bold;
+}
+.modal-btn-order:hover {
+    background: var(--forest-green);
+    border-color: var(--forest-green);
+    color: var(--white);
+}
+
+@media (max-width: 600px) {
+    .modal-panel { flex-direction: column; max-height: 92vh; }
+    .modal-image-side { flex: 0 0 45vw; min-height: 220px; }
+    .modal-info-side { padding: 24px 20px; }
+}
+
+/* Site Footer */
+.site-footer {
+    background-color: var(--forest-green);
+    color: var(--cream-gold);
+    padding: 56px 52px 36px;
+}
+
+.footer-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+}
+
+.footer-brand {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 42px;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    color: var(--cream-gold);
+    margin: 0;
+}
+
+.footer-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px;
+    justify-content: center;
+}
+
+.footer-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: var(--cream-gold);
+    text-decoration: none;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 17px;
+    letter-spacing: 0.06em;
+    opacity: 0.85;
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.footer-contact-item:hover {
+    opacity: 1;
+    color: var(--white);
+}
+
+.footer-contact-item svg {
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+
+.footer-copy {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    opacity: 0.45;
+    margin: 0;
+    color: var(--cream-gold);
 }
 
 /* Responsiveness adjustments for smaller devices */

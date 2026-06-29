@@ -77,6 +77,13 @@
             </div>
 
             <div class="field">
+                <label>Gallery Images (Optional — multiple allowed)</label>
+                <input type="file" id="gallery_images" name="gallery_images" accept="image/*" multiple>
+                <div id="gallery-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+                <p style="font-size:12px;color:#888;margin:4px 0 0;">Select multiple files at once to add to the gallery.</p>
+            </div>
+
+            <div class="field">
                 <label for="where_to_get">Where to get it</label>
                 <textarea id="where_to_get" name="where_to_get" rows="2" placeholder="e.g., At our storefront, or call us."></textarea>
             </div>
@@ -172,6 +179,18 @@
                 }, 'image/jpeg', 0.92);
             });
         })();
+
+        // Gallery preview
+        document.getElementById('gallery_images').addEventListener('change', function () {
+            var preview = document.getElementById('gallery-preview');
+            preview.innerHTML = '';
+            Array.from(this.files).forEach(function (file) {
+                var img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.cssText = 'width:80px;height:80px;object-fit:cover;border-radius:4px;border:1px solid #ccc;';
+                preview.appendChild(img);
+            });
+        });
     </script>
 </body>
 </html>
