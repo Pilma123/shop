@@ -21,9 +21,89 @@
         button[type=submit] { padding: 10px 24px; background: #2d6a4f; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; }
         button[type=submit]:hover { background: #1b4332; }
 
-        /* Current image */
-        .current-image img { max-width: 160px; border: 1px solid #ccc; border-radius: 4px; display: block; margin: 6px 0; }
-        .current-image label { font-weight: normal; font-size: 13px; color: #dc3545; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+        /* Current image container & remove overlays */
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin-top: 6px;
+        }
+        .image-container img {
+            max-width: 160px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            display: block;
+            transition: opacity 0.2s, filter 0.2s;
+        }
+        .image-container .remove-cross {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(220,53,69,0.85);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 16px;
+            line-height: 22px;
+            text-align: center;
+            cursor: pointer;
+            padding: 0;
+            transition: background 0.2s, transform 0.1s;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .image-container .remove-cross:hover {
+            background: rgba(220,53,69,1);
+            transform: scale(1.1);
+        }
+        .image-container.marked-delete img {
+            opacity: 0.35;
+            filter: grayscale(1);
+        }
+        .image-container.marked-delete::after {
+            content: "Will be removed";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Gallery removal button style */
+        .remove-gallery-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(220,53,69,0.85);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .remove-gallery-btn:hover {
+            background: rgba(220,53,69,1);
+            transform: scale(1.1);
+        }
 
         /* Image editor */
         .image-editor { display: none; margin-top: 12px; border: 1px solid #ddd; border-radius: 6px; padding: 16px; background: #fafafa; }
@@ -42,6 +122,7 @@
     <main>
         <h2>Edit Product: {{ product.name }}</h2>
         <form method="POST" enctype="multipart/form-data" id="product-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
             <div class="field">
                 <label for="name">Product Name (Required)</label>
@@ -67,13 +148,13 @@
             <div class="field">
                 <label>Replace Product Image (Optional)</label>
                 {% if product.image_filename %}
-                <div class="current-image">
-                    <span style="font-size:13px;color:#555;">Current image:</span>
-                    <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}">
-                    <label>
-                        <input type="checkbox" id="delete_image" name="delete_image" value="1">
-                        Remove current image
-                    </label>
+                <div class="current-image-wrapper">
+                    <span style="font-size:13px;color:#555;display:block;margin-bottom:6px;">Current image:</span>
+                    <div class="image-container" id="product-image-container">
+                        <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}">
+                        <button type="button" class="remove-cross" id="btn-remove-product-image" title="Remove image">&times;</button>
+                        <input type="checkbox" id="delete_image" name="delete_image" value="1" style="display:none;">
+                    </div>
                 </div>
                 {% endif %}
                 <input type="file" id="image" name="image" accept="image/*" style="margin-top:10px;">
@@ -97,9 +178,7 @@
                     {% for gi in product.gallery_images %}
                     <div style="position:relative;display:inline-block;">
                         <img src="{{ url_for('static', filename='uploads/' + gi.filename) }}" style="width:90px;height:90px;object-fit:cover;border-radius:4px;border:1px solid #ccc;display:block;">
-                        <form method="POST" action="/admin/delete-gallery-image/{{ gi.id }}" style="margin:0;">
-                            <button type="submit" title="Remove" style="position:absolute;top:2px;right:2px;background:rgba(220,53,69,0.85);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer;padding:0;">&times;</button>
-                        </form>
+                        <button type="button" class="remove-gallery-btn" data-image-id="{{ gi.id }}" title="Remove">&times;</button>
                     </div>
                     {% endfor %}
                 </div>
@@ -217,6 +296,44 @@
                 preview.appendChild(img);
             });
         });
+
+        // Product image delete toggle handler (Premium Cross UI)
+        const removeProductImageBtn = document.getElementById('btn-remove-product-image');
+        if (removeProductImageBtn) {
+            removeProductImageBtn.addEventListener('click', function () {
+                const checkbox = document.getElementById('delete_image');
+                const container = document.getElementById('product-image-container');
+                checkbox.checked = !checkbox.checked;
+                if (checkbox.checked) {
+                    container.classList.add('marked-delete');
+                    this.innerHTML = '&#8634;'; // Circular arrow undo symbol
+                    this.title = "Undo remove";
+                    this.style.background = "rgba(40, 167, 69, 0.85)"; // Green for restore
+                } else {
+                    container.classList.remove('marked-delete');
+                    this.innerHTML = '&times;'; // Cross symbol
+                    this.title = "Remove image";
+                    this.style.background = "rgba(220, 53, 69, 0.85)"; // Red
+                }
+            });
+        }
+
+        // Gallery image deletion handler (nested form workaround)
+        document.querySelectorAll('.remove-gallery-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to remove this gallery image?')) {
+                    const form = document.getElementById('delete-gallery-form');
+                    form.action = '/admin/delete-gallery-image/' + this.dataset.imageId;
+                    form.submit();
+                }
+            });
+        });
     </script>
+
+    <!-- Hidden form for gallery image deletion (avoids nested forms) -->
+    <form id="delete-gallery-form" method="POST" style="display:none;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    </form>
 </body>
 </html>

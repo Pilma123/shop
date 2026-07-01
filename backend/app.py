@@ -1,8 +1,10 @@
 import os
+import secrets
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, abort
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
-from models import db, User, Product, ProductImage, SiteSettings
+from models import db, User, Product, ProductImage, SiteSettings, BlockedIP, LoginAttempt
 
 app = Flask(
     __name__,
@@ -15,6 +17,10 @@ db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'shop.db'))
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Security Cookies Configuration
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 # Session key persistence
 secret_key_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'secret.key'))
 if os.path.exists(secret_key_path):
@@ -26,6 +32,50 @@ else:
         f.write(app.secret_key)
 
 db.init_app(app)
+
+# Helper to retrieve client IP safely
+def get_client_ip():
+    if request.headers.getlist("X-Forwarded-For"):
+        return request.headers.getlist("X-Forwarded-For")[0].split(',')[0].strip()
+    return request.remote_addr
+
+# Lockout detection (lock IP for 15 mins after 5 consecutive failures)
+def is_ip_locked_out(ip):
+    attempts = LoginAttempt.query.filter_by(ip_address=ip).order_by(LoginAttempt.timestamp.desc()).limit(5).all()
+    if len(attempts) < 5:
+        return False
+    if all(not a.success for a in attempts):
+        diff = datetime.utcnow() - attempts[-1].timestamp
+        if diff.total_seconds() < 900:  # 15 minutes
+            return True
+    return False
+
+# CSRF Protection middleware
+@app.before_request
+def csrf_protect():
+    # Ensure CSRF token exists
+    if 'csrf_token' not in session:
+        session['csrf_token'] = secrets.token_hex(32)
+    
+    # Check POST requests for CSRF validity
+    if request.method == 'POST':
+        # Don't validate static assets or non-forms if any
+        token = request.form.get('csrf_token')
+        if not token or token != session.get('csrf_token'):
+            abort(400, "CSRF token missing or invalid.")
+
+# Blocked IP filter middleware
+@app.before_request
+def check_ip_block():
+    if request.path.startswith('/admin'):
+        ip = get_client_ip()
+        if BlockedIP.query.filter_by(ip_address=ip).first():
+            abort(403, "Access denied: your IP address has been blocked by the administrator.")
+
+@app.context_processor
+def inject_csrf_token():
+    return dict(csrf_token=session.get('csrf_token'))
+
 
 # Upload Config
 UPLOAD_FOLDER = os.path.join(app.static_folder, 'uploads')
@@ -83,16 +133,32 @@ def admin_login():
         return redirect(url_for('admin_dashboard'))
     
     error = None
+    ip = get_client_ip()
+    
+    if is_ip_locked_out(ip):
+        error = 'Too many failed login attempts. Please try again after 15 minutes.'
+        return render_template('admin/login.html', error=error)
+        
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '').strip()
         
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password_hash, password):
+            # Log successful attempt
+            db.session.add(LoginAttempt(ip_address=ip, username=username, success=True))
+            db.session.commit()
+            
             session['is_admin'] = True
             return redirect(url_for('admin_dashboard'))
         else:
+            # Log failed attempt
+            db.session.add(LoginAttempt(ip_address=ip, username=username, success=False))
+            db.session.commit()
+            
             error = 'Invalid credentials'
+            if is_ip_locked_out(ip):
+                error = 'Too many failed login attempts. This IP address has been temporarily locked out.'
             
     return render_template('admin/login.html', error=error)
 
@@ -118,14 +184,47 @@ def admin_dashboard():
     pinned_2 = Product.query.filter_by(category='Pinned 2').first()
     pinned_3 = Product.query.filter_by(category='Pinned 3').first()
     
+    # Security tracking data
+    failed_attempts = LoginAttempt.query.filter_by(success=False).order_by(LoginAttempt.timestamp.desc()).limit(20).all()
+    blocked_ips = BlockedIP.query.order_by(BlockedIP.blocked_at.desc()).all()
+    
     return render_template(
         'admin/dashboard.html', 
         products=dashboard_products, 
         current_filter=filter_val,
         pinned_1=pinned_1,
         pinned_2=pinned_2,
-        pinned_3=pinned_3
+        pinned_3=pinned_3,
+        failed_attempts=failed_attempts,
+        blocked_ips=blocked_ips,
+        error_msg=request.args.get('error')
     )
+
+@app.route('/admin/block-ip', methods=['POST'])
+def block_ip():
+    check_admin()
+    ip_to_block = request.form.get('ip_address', '').strip()
+    if ip_to_block:
+        if ip_to_block == get_client_ip():
+            return redirect(url_for('admin_dashboard', error="You cannot block your own current IP address!"))
+        
+        existing = BlockedIP.query.filter_by(ip_address=ip_to_block).first()
+        if not existing:
+            db.session.add(BlockedIP(ip_address=ip_to_block))
+            db.session.commit()
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/unblock-ip', methods=['POST'])
+def unblock_ip():
+    check_admin()
+    ip_to_unblock = request.form.get('ip_address', '').strip()
+    if ip_to_unblock:
+        blocked = BlockedIP.query.filter_by(ip_address=ip_to_unblock).first()
+        if blocked:
+            db.session.delete(blocked)
+            db.session.commit()
+    return redirect(url_for('admin_dashboard'))
+
 
 @app.route('/admin/add-product', methods=['GET', 'POST'])
 def add_product():

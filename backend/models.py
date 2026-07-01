@@ -45,3 +45,20 @@ class ProductImage(db.Model):
     filename = db.Column(db.String(255), nullable=False)
     product = db.relationship('Product', backref=db.backref('gallery_images', lazy=True, cascade='all, delete-orphan'))
 
+
+class BlockedIP(db.Model):
+    __tablename__ = 'blocked_ips'
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(50), unique=True, nullable=False)
+    blocked_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+
+class LoginAttempt(db.Model):
+    __tablename__ = 'login_attempts'
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(50), nullable=False)
+    username = db.Column(db.String(80), nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+    success = db.Column(db.Boolean, default=False)
+
+
