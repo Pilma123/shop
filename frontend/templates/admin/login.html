@@ -15,6 +15,7 @@
             <p style="color: red;">{{ error }}</p>
         {% endif %}
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div style="margin-bottom: 10px;">
                 <label for="username">Username:</label><br>
                 <input type="text" id="username" name="username" required style="width: 100%;">
