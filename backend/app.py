@@ -126,6 +126,14 @@ def products():
         all_products = Product.query.all()
     return render_template('products.html', products=all_products, search=search_query)
 
+@app.route('/admin/reset-lockout')
+def reset_lockout():
+    ip = get_client_ip()
+    # Delete failed login attempts for this IP to reset the lockout
+    LoginAttempt.query.filter_by(ip_address=ip, success=False).delete()
+    db.session.commit()
+    return redirect(url_for('admin_login'))
+
 # Admin Auth routes
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
