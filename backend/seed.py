@@ -10,10 +10,36 @@ def seed():
         
         username = input("Admin username [admin]: ").strip() or "admin"
         password = ""
-        while not password:
-            password = input("Admin password: ").strip()
+        while True:
+            password = input("Admin password (min 12 chars, must contain upper, lower, number, special char): ").strip()
             if not password:
                 print("Password cannot be empty.")
+                continue
+            
+            # Complexity validation
+            is_valid = True
+            reasons = []
+            if len(password) < 12:
+                is_valid = False
+                reasons.append("at least 12 characters long")
+            if not any(c.isupper() for c in password):
+                is_valid = False
+                reasons.append("one uppercase letter")
+            if not any(c.islower() for c in password):
+                is_valid = False
+                reasons.append("one lowercase letter")
+            if not any(c.isdigit() for c in password):
+                is_valid = False
+                reasons.append("one digit")
+            special_chars = '!@#$%^&*(),.?":{}|<>'
+            if not any(c in special_chars for c in password):
+                is_valid = False
+                reasons.append("one special character (e.g. !@#$%^&*())")
+                
+            if is_valid:
+                break
+            else:
+                print(f"Password fails complexity requirements. It must include: {', '.join(reasons)}")
                 
         # Hash password
         pwd_hash = generate_password_hash(password)

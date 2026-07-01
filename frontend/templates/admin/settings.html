@@ -36,6 +36,7 @@
         {% endif %}
 
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <div class="field">
                 <label for="phone">Phone Number</label>
                 <input type="text" id="phone" name="phone" value="{{ settings.phone or '' }}" placeholder="e.g. +372 5123 4567">
