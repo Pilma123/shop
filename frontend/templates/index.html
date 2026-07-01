@@ -28,8 +28,14 @@
         <nav class="nav-right desktop-nav">
             <a href="/admin/dashboard" class="nav-link">Admin Dashboard</a>
         </nav>
-        <button class="mobile-menu-icon" aria-label="Menu">&#9776;</button>
+        <button class="mobile-menu-icon" id="mobile-menu-btn" aria-label="Menu">&#9776;</button>
     </header>
+
+    <nav class="mobile-nav-menu" id="mobile-nav-menu">
+        <a href="/" class="mobile-nav-link">Home</a>
+        <a href="/products" class="mobile-nav-link">All Products</a>
+        <a href="/admin/dashboard" class="mobile-nav-link">Admin Dashboard</a>
+    </nav>
 
     <main class="landing-container">
         <img src="{{ url_for('static', filename='images/landingpage_background2.png') }}" class="landing-bg" alt="Kramlill background mockup">
@@ -55,9 +61,6 @@
                     <div class="pinned-details">
                         <h3 class="pinned-name">{{ pinned_1.name }}</h3>
                         <div class="pinned-actions">
-                            {% if pinned_1.instagram_url %}
-                                <a href="{{ pinned_1.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" onclick="event.stopPropagation()">Instagram</a>
-                            {% endif %}
                             {% if pinned_1.phone %}
                                 <a href="tel:{{ pinned_1.phone }}" class="pinned-btn phone-btn" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
@@ -90,9 +93,6 @@
                     <div class="pinned-details">
                         <h3 class="pinned-name">{{ pinned_2.name }}</h3>
                         <div class="pinned-actions">
-                            {% if pinned_2.instagram_url %}
-                                <a href="{{ pinned_2.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" onclick="event.stopPropagation()">Instagram</a>
-                            {% endif %}
                             {% if pinned_2.phone %}
                                 <a href="tel:{{ pinned_2.phone }}" class="pinned-btn phone-btn" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
@@ -125,9 +125,6 @@
                     <div class="pinned-details">
                         <h3 class="pinned-name">{{ pinned_3.name }}</h3>
                         <div class="pinned-actions">
-                            {% if pinned_3.instagram_url %}
-                                <a href="{{ pinned_3.instagram_url }}" target="_blank" class="pinned-btn instagram-btn" onclick="event.stopPropagation()">Instagram</a>
-                            {% endif %}
                             {% if pinned_3.phone %}
                                 <a href="tel:{{ pinned_3.phone }}" class="pinned-btn phone-btn" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
@@ -165,9 +162,6 @@
                         <p class="normal-price">${{ "%.2f"|format(product.price) }}</p>
                         <p class="normal-desc">{{ product.description }}</p>
                         <div class="normal-actions">
-                            {% if product.instagram_url %}
-                                <a href="{{ product.instagram_url }}" target="_blank" class="normal-btn insta" onclick="event.stopPropagation()">Instagram</a>
-                            {% endif %}
                             {% if product.phone %}
                                 <a href="tel:{{ product.phone }}" class="normal-btn call" onclick="event.stopPropagation()">Order</a>
                             {% endif %}
@@ -217,6 +211,15 @@
         </div>
     </footer>
 
+    <!-- Image Lightbox -->
+    <div class="image-lightbox" id="image-lightbox">
+        <button class="lightbox-close" id="lightbox-close">&times;</button>
+        <button class="lightbox-nav lb-prev" id="lightbox-prev">&#8249;</button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="">
+        <button class="lightbox-nav lb-next" id="lightbox-next">&#8250;</button>
+        <span class="lightbox-counter" id="lightbox-counter"></span>
+    </div>
+
     <!-- Product Modal -->
     <div class="product-modal" id="product-modal" aria-hidden="true">
         <div class="modal-overlay" id="modal-overlay"></div>
@@ -240,11 +243,16 @@
     </div>
 
     <script>
-        // Single-line title spacing
-        document.querySelectorAll('.pinned-name').forEach(function(el) {
-            var lineHeight = parseFloat(window.getComputedStyle(el).lineHeight);
-            if (el.offsetHeight <= lineHeight * 1.5) {
-                el.closest('.pinned-details').querySelector('.pinned-actions').style.marginTop = '10px';
+        // Mobile menu toggle
+        var mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        var mobileNavMenu = document.getElementById('mobile-nav-menu');
+        mobileMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            mobileNavMenu.classList.toggle('open');
+        });
+        document.addEventListener('click', function(e) {
+            if (!mobileNavMenu.contains(e.target) && e.target !== mobileMenuBtn) {
+                mobileNavMenu.classList.remove('open');
             }
         });
 
@@ -359,7 +367,59 @@
         }
         closeBtn.addEventListener('click', closeModal);
         overlay.addEventListener('click', closeModal);
+
+        // Lightbox
+        var lightbox = document.getElementById('image-lightbox');
+        var lightboxImg = document.getElementById('lightbox-img');
+        var lightboxCounter = document.getElementById('lightbox-counter');
+        var lightboxIdx = 0;
+
+        function updateLightbox() {
+            lightboxImg.src = carouselImgs[lightboxIdx];
+            lightboxCounter.textContent = carouselImgs.length > 1 ? (lightboxIdx + 1) + ' / ' + carouselImgs.length : '';
+            document.getElementById('lightbox-prev').style.display = carouselImgs.length > 1 ? '' : 'none';
+            document.getElementById('lightbox-next').style.display = carouselImgs.length > 1 ? '' : 'none';
+        }
+
+        function openLightbox() {
+            if (!carouselImgs.length) return;
+            lightboxIdx = carouselIdx;
+            updateLightbox();
+            lightbox.classList.add('open');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('open');
+        }
+
+        document.querySelector('.modal-image-side').addEventListener('click', function(e) {
+            if (!e.target.closest('.carousel-btn') && !e.target.closest('.carousel-dots')) {
+                openLightbox();
+            }
+        });
+
+        document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+        lightbox.addEventListener('click', function(e) {
+            if (e.target === lightbox) closeLightbox();
+        });
+        document.getElementById('lightbox-prev').addEventListener('click', function(e) {
+            e.stopPropagation();
+            lightboxIdx = ((lightboxIdx - 1 + carouselImgs.length) % carouselImgs.length);
+            updateLightbox();
+        });
+        document.getElementById('lightbox-next').addEventListener('click', function(e) {
+            e.stopPropagation();
+            lightboxIdx = ((lightboxIdx + 1) % carouselImgs.length);
+            updateLightbox();
+        });
+
         document.addEventListener('keydown', function(e) {
+            if (lightbox.classList.contains('open')) {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') { lightboxIdx = ((lightboxIdx - 1 + carouselImgs.length) % carouselImgs.length); updateLightbox(); }
+                if (e.key === 'ArrowRight') { lightboxIdx = ((lightboxIdx + 1) % carouselImgs.length); updateLightbox(); }
+                return;
+            }
             if (e.key === 'Escape') closeModal();
             if (e.key === 'ArrowLeft' && modal.classList.contains('open')) goTo(carouselIdx - 1);
             if (e.key === 'ArrowRight' && modal.classList.contains('open')) goTo(carouselIdx + 1);
