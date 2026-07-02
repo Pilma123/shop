@@ -13,7 +13,22 @@ app = Flask(
 )
 
 # SQLite Config
-db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'shop.db'))
+db_filename = 'shop.db'
+local_db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), db_filename))
+
+# Check if running on Vercel or in a read-only environment
+if os.environ.get('VERCEL') or not os.access(os.path.dirname(local_db_path), os.W_OK):
+    db_path = os.path.join('/tmp', db_filename)
+    # Copy seeded database if it exists locally but not in /tmp
+    if os.path.exists(local_db_path) and not os.path.exists(db_path):
+        import shutil
+        try:
+            shutil.copy2(local_db_path, db_path)
+        except Exception as e:
+            print(f"Failed to copy seeded database: {e}")
+else:
+    db_path = local_db_path
+
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -21,17 +36,31 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
-# Session key persistence
-secret_key_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'secret.key'))
+# Session key persistence (use /tmp in read-only environment)
+if os.environ.get('VERCEL') or not os.access(os.path.dirname(local_db_path), os.W_OK):
+    secret_key_path = os.path.join('/tmp', 'secret.key')
+else:
+    secret_key_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'secret.key'))
+
 if os.path.exists(secret_key_path):
     with open(secret_key_path, 'rb') as f:
         app.secret_key = f.read()
 else:
     app.secret_key = os.urandom(24)
-    with open(secret_key_path, 'wb') as f:
-        f.write(app.secret_key)
+    try:
+        with open(secret_key_path, 'wb') as f:
+            f.write(app.secret_key)
+    except Exception:
+        pass
 
 db.init_app(app)
+
+# Ensure database tables exist
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Failed to create db tables: {e}")
 
 # Helper to retrieve client IP safely
 def get_client_ip():
@@ -137,7 +166,10 @@ UPLOAD_FOLDER = os.path.join(app.static_folder, 'uploads')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except Exception:
+    pass
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

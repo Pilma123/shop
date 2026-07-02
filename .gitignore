@@ -1,5 +1,6 @@
 backend/secret.key
 backend/*.db
+!backend/shop.db
 backend/__pycache__/
 __pycache__/
 *.pyc
