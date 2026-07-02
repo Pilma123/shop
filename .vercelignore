@@ -1,0 +1,5 @@
+# Exclude files from Vercel deployments
+backend/secret.key
+backend/__pycache__/
+__pycache__/
+*.pyc
