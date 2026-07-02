@@ -130,13 +130,18 @@
             </div>
 
             <div class="field">
-                <label for="description">Description</label>
+                <label for="description">Description (Eesti keeles)</label>
                 <textarea id="description" name="description" rows="4">{{ product.description }}</textarea>
+            </div>
+
+            <div class="field">
+                <label for="description_en">Description (English)</label>
+                <textarea id="description_en" name="description_en" rows="4">{{ product.description_en or '' }}</textarea>
             </div>
 
             <div class="row">
                 <div class="field">
-                    <label for="price">Price ($) (Required)</label>
+                    <label for="price">Price (€) (Required)</label>
                     <input type="number" id="price" name="price" step="0.01" min="0" value="{{ product.price }}" required>
                 </div>
                 <div class="field">
@@ -189,8 +194,13 @@
             </div>
 
             <div class="field">
-                <label for="where_to_get">Where to get it</label>
+                <label for="where_to_get">Where to get it (Eesti keeles)</label>
                 <textarea id="where_to_get" name="where_to_get" rows="2">{{ product.where_to_get }}</textarea>
+            </div>
+
+            <div class="field">
+                <label for="where_to_get_en">Where to get it (English)</label>
+                <textarea id="where_to_get_en" name="where_to_get_en" rows="2">{{ product.where_to_get_en or '' }}</textarea>
             </div>
 
             <div class="field">

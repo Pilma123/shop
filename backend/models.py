@@ -13,10 +13,12 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    description_en = db.Column(db.Text, nullable=True)
     price = db.Column(db.Float, nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=0)
     image_filename = db.Column(db.String(255), nullable=True)
     where_to_get = db.Column(db.Text, nullable=True)
+    where_to_get_en = db.Column(db.Text, nullable=True)
     instagram_url = db.Column(db.String(255), nullable=True)
     phone = db.Column(db.String(50), nullable=True)
     category = db.Column(db.String(50), nullable=False, default='Normal')
@@ -37,6 +39,8 @@ class SiteSettings(db.Model):
     instagram_url = db.Column(db.String(255), nullable=True)
     facebook_url = db.Column(db.String(255), nullable=True)
     email = db.Column(db.String(255), nullable=True)
+    order_popup_text = db.Column(db.Text, nullable=True)
+    order_popup_text_en = db.Column(db.Text, nullable=True)
 
 class ProductImage(db.Model):
     __tablename__ = 'product_images'

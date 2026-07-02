@@ -6,15 +6,24 @@
 {{- ns.urls | tojson -}}
 {%- endmacro %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KramLill - Products</title>
+    <title>{{ t.page_title_products }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <meta name="description" content="{{ t.meta_desc_products }}">
+    <link rel="canonical" href="https://kramlill.ee/products">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ t.page_title_products }}">
+    <meta property="og:description" content="{{ t.meta_desc_products }}">
+    <meta property="og:url" content="https://kramlill.ee/products">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ t.page_title_products }}">
+    <meta name="twitter:description" content="{{ t.meta_desc_products }}">
     <style>
         body {
             background-image: url("{{ url_for('static', filename='images/productpage_background4.png') }}");
@@ -260,31 +269,41 @@
 <body>
     <header class="site-header">
         <nav class="nav-left desktop-nav">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/products" class="nav-link" style="margin-left: 24px;">All Products</a>
+            <a href="/" class="nav-link">{{ t.nav_home }}</a>
+            <a href="/products" class="nav-link" style="margin-left: 24px;">{{ t.nav_products }}</a>
         </nav>
         <a href="/" class="logo">Kramlill</a>
         <nav class="nav-right desktop-nav">
             <a href="/admin/dashboard" class="nav-link">Admin Dashboard</a>
+            <div class="lang-switcher">
+                <a href="/set-language/et" class="lang-btn {% if lang == 'et' %}active{% endif %}">ET</a>
+                <span class="lang-sep">|</span>
+                <a href="/set-language/en" class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
+            </div>
         </nav>
         <button class="mobile-menu-icon" id="mobile-menu-btn" aria-label="Menu">&#9776;</button>
     </header>
 
     <nav class="mobile-nav-menu" id="mobile-nav-menu">
-        <a href="/" class="mobile-nav-link">Home</a>
-        <a href="/products" class="mobile-nav-link">All Products</a>
+        <a href="/" class="mobile-nav-link">{{ t.nav_home }}</a>
+        <a href="/products" class="mobile-nav-link">{{ t.nav_products }}</a>
         <a href="/admin/dashboard" class="mobile-nav-link">Admin Dashboard</a>
+        <div style="display:flex;gap:10px;padding:12px 24px;">
+            <a href="/set-language/et" class="lang-btn {% if lang == 'et' %}active{% endif %}">ET</a>
+            <span class="lang-sep">|</span>
+            <a href="/set-language/en" class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
+        </div>
     </nav>
     <main class="products-main">
         <div class="products-header">
-            <h1>Our Catalog</h1>
+            <h1>{{ t.h1_products }}</h1>
             <form method="GET" action="/products" class="search-form">
-                <input type="text" name="search" placeholder="Search products..." value="{{ search }}" class="search-input">
+                <input type="text" name="search" placeholder="{{ t.search_placeholder }}" value="{{ search }}" class="search-input">
                 <button type="submit" class="search-btn" aria-label="Search">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 </button>
                 {% if search %}
-                    <a href="/products" class="search-clear">Clear</a>
+                    <a href="/products" class="search-clear">{{ t.search_clear }}</a>
                 {% endif %}
             </form>
         </div>
@@ -295,25 +314,27 @@
                      data-name="{{ product.name }}"
                      data-price="{{ '%.2f'|format(product.price) }}"
                      data-description="{{ product.description or '' }}"
+                     data-description-en="{{ product.description_en or '' }}"
                      data-where="{{ product.where_to_get or '' }}"
+                     data-where-en="{{ product.where_to_get_en or '' }}"
                      data-instagram="{{ product.instagram_url or '' }}"
                      data-phone="{{ product.phone or '' }}"
                      data-gallery='{{ gallery_json(product) }}'>
                     <div class="pc-image-wrap">
                         {% if product.image_filename %}
-                            <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.name }}">
+                            <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="Kramlilli käsitsi valmistatud {{ product.name }}">
                         {% else %}
-                            <div class="pc-no-image">No Image</div>
+                            <div class="pc-no-image">{{ t.no_image }}</div>
                         {% endif %}
                     </div>
                     <div class="pc-body">
                         <h3 class="pc-name">{{ product.name }}</h3>
-                        <p class="pc-price">${{ "%.2f"|format(product.price) }}</p>
-                        {% if product.description %}
-                            <p class="pc-desc">{{ product.description }}</p>
+                        <p class="pc-price">{{ "%.2f"|format(product.price) }} €</p>
+                        {% if product.description or product.description_en %}
+                            <p class="pc-desc">{% if lang == 'en' and product.description_en %}{{ product.description_en }}{% else %}{{ product.description }}{% endif %}</p>
                         {% endif %}
-                        {% if product.where_to_get %}
-                            <p class="pc-where">{{ product.where_to_get }}</p>
+                        {% if product.where_to_get or product.where_to_get_en %}
+                            <p class="pc-where">{% if lang == 'en' and product.where_to_get_en %}{{ product.where_to_get_en }}{% else %}{{ product.where_to_get }}{% endif %}</p>
                         {% endif %}
                         <div class="pc-links">
                             {% if product.instagram_url %}
@@ -330,12 +351,12 @@
                             {% endif %}
                         </div>
                         {% if product.phone %}
-                            <a href="tel:{{ product.phone }}" class="pc-order" onclick="event.stopPropagation()">Order</a>
+                            <a href="#" class="pc-order" onclick="event.stopPropagation(); showOrderPopup(); return false;">{{ t.order_btn }}</a>
                         {% endif %}
                     </div>
                 </div>
             {% else %}
-                <p class="pc-empty">No products available yet.</p>
+                <p class="pc-empty">{{ t.no_products }}</p>
             {% endfor %}
         </div>
     </main>
@@ -349,6 +370,39 @@
         <span class="lightbox-counter" id="lightbox-counter"></span>
     </div>
 
+    <!-- Order Popup -->
+    <div class="order-popup" id="order-popup">
+        <div class="order-popup-overlay" id="order-popup-overlay"></div>
+        <div class="order-popup-box">
+            <button class="order-popup-close" id="order-popup-close">&times;</button>
+            {% if lang == 'en' %}
+                <p>{{ settings.order_popup_text_en if settings and settings.order_popup_text_en else t.order_popup_default }}</p>
+            {% else %}
+                <p>{{ settings.order_popup_text if settings and settings.order_popup_text else t.order_popup_default }}</p>
+            {% endif %}
+            <div class="order-popup-contacts">
+                {% if settings and settings.phone %}
+                <a href="tel:{{ settings.phone }}" class="order-popup-contact">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.85a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.02z"/></svg>
+                    <span>{{ settings.phone }}</span>
+                </a>
+                {% endif %}
+                {% if settings and settings.instagram_url %}
+                <a href="{{ settings.instagram_url }}" target="_blank" class="order-popup-contact">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    <span>Instagram</span>
+                </a>
+                {% endif %}
+                {% if settings and settings.facebook_url %}
+                <a href="{{ settings.facebook_url }}" target="_blank" class="order-popup-contact">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                    <span>Facebook</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <!-- Product Modal -->
     <div class="product-modal" id="product-modal" aria-hidden="true">
         <div class="modal-overlay" id="modal-overlay"></div>
@@ -359,7 +413,7 @@
                 <button class="carousel-btn carousel-prev" id="carousel-prev">&#8249;</button>
                 <button class="carousel-btn carousel-next" id="carousel-next">&#8250;</button>
                 <div class="carousel-dots" id="carousel-dots"></div>
-                <div class="modal-no-image" id="modal-no-image">No Image</div>
+                <div class="modal-no-image" id="modal-no-image">{{ t.no_image }}</div>
             </div>
             <div class="modal-info-side">
                 <h2 class="modal-name" id="modal-name"></h2>
@@ -372,6 +426,12 @@
     </div>
 
     <script>
+        var STRINGS = {
+            availableAt: '{{ t.available_at }}',
+            orderBtn: '{{ t.order_btn }}',
+            lang: '{{ lang }}'
+        };
+
         // Mobile menu toggle
         var mobileMenuBtn = document.getElementById('mobile-menu-btn');
         var mobileNavMenu = document.getElementById('mobile-nav-menu');
@@ -424,11 +484,13 @@
                 var d = card.dataset;
 
                 document.getElementById('modal-name').textContent = d.name || '';
-                document.getElementById('modal-price').textContent = d.price ? '$' + d.price : '';
-                document.getElementById('modal-desc').textContent = d.description || '';
+                document.getElementById('modal-price').textContent = d.price ? d.price + ' €' : '';
+                var desc = (STRINGS.lang === 'en' && d.descriptionEn) ? d.descriptionEn : (d.description || '');
+                document.getElementById('modal-desc').textContent = desc;
                 var whereEl = document.getElementById('modal-where');
-                whereEl.textContent = d.where ? 'Available at: ' + d.where : '';
-                whereEl.style.display = d.where ? '' : 'none';
+                var whereVal = (STRINGS.lang === 'en' && d.whereEn) ? d.whereEn : (d.where || '');
+                whereEl.textContent = whereVal ? STRINGS.availableAt + ' ' + whereVal : '';
+                whereEl.style.display = whereVal ? '' : 'none';
 
                 var actionsEl = document.getElementById('modal-actions');
                 actionsEl.innerHTML = '';
@@ -441,9 +503,10 @@
                 }
                 if (d.phone) {
                     var ph = document.createElement('a');
-                    ph.href = 'tel:' + d.phone;
+                    ph.href = '#';
                     ph.className = 'modal-btn modal-btn-order';
-                    ph.textContent = 'Order';
+                    ph.textContent = STRINGS.orderBtn;
+                    ph.addEventListener('click', function(e) { e.preventDefault(); showOrderPopup(); });
                     actionsEl.appendChild(ph);
                 }
 
@@ -551,6 +614,22 @@
             if (e.key === 'ArrowLeft' && modal.classList.contains('open')) goTo(carouselIdx - 1);
             if (e.key === 'ArrowRight' && modal.classList.contains('open')) goTo(carouselIdx + 1);
         });
+
+        // Order popup
+        var orderPopup = document.getElementById('order-popup');
+        function showOrderPopup() { orderPopup.classList.add('open'); }
+        function closeOrderPopup() { orderPopup.classList.remove('open'); }
+        document.getElementById('order-popup-close').addEventListener('click', closeOrderPopup);
+        document.getElementById('order-popup-overlay').addEventListener('click', closeOrderPopup);
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Kramlilli käsitööehted",
+      "description": "Käsitsi valmistatud ehted Eestis",
+      "url": "https://kramlill.ee/products"
+    }
     </script>
 </body>
 </html>

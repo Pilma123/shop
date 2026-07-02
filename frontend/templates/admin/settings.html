@@ -21,6 +21,8 @@
         button[type=submit] { padding: 10px 24px; background: #1c2b1a; color: #efe4cc; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; }
         button[type=submit]:hover { background: #2d6a4f; }
         .saved-msg { display: none; background: #e6f6ec; border: 1px solid #28a745; color: #1b5e20; padding: 10px 16px; border-radius: 4px; margin-bottom: 20px; font-size: 14px; }
+        textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: sans-serif; resize: vertical; }
+        hr.section-divider { border: none; border-top: 1px solid #e0e0e0; margin: 28px 0; }
     </style>
 </head>
 <body>
@@ -57,6 +59,18 @@
             <div class="field">
                 <label for="facebook_url">Facebook URL</label>
                 <input type="url" id="facebook_url" name="facebook_url" value="{{ settings.facebook_url or '' }}" placeholder="https://facebook.com/kramlill">
+            </div>
+
+            <hr class="section-divider">
+            <h2 style="margin-top:0;">Order Popup</h2>
+            <p class="subtitle">Text shown when a visitor clicks the Order button.</p>
+            <div class="field">
+                <label for="order_popup_text">Popup Message (Eesti keeles)</label>
+                <textarea id="order_popup_text" name="order_popup_text" rows="3" placeholder="nt. Tellimiseks helista meile või saada meile DM.">{{ settings.order_popup_text or '' }}</textarea>
+            </div>
+            <div class="field">
+                <label for="order_popup_text_en">Popup Message (English)</label>
+                <textarea id="order_popup_text_en" name="order_popup_text_en" rows="3" placeholder="e.g. You can order by calling us directly or sending us a DM.">{{ settings.order_popup_text_en or '' }}</textarea>
             </div>
 
             <button type="submit">Save Settings</button>

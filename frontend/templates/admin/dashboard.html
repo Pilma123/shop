@@ -119,7 +119,7 @@
                                 {% endif %}
                             </td>
                             <td><strong style="color: #1c2b1a;">{{ product.name }}</strong></td>
-                            <td>${{ "%.2f"|format(product.price) }}</td>
+                            <td>{{ "%.2f"|format(product.price) }} €</td>
                             <td>
                                 <span style="padding: 3px 8px; border-radius: 12px; font-size: 0.9em; {{ 'background: #ffebe6; color: #d73a49;' if product.stock == 0 else 'background: #e6f6ec; color: #28a745;' }}">
                                     {{ product.stock }} in stock

@@ -1,7 +1,7 @@
 import os
 import secrets
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, redirect, url_for, session, abort
+from flask import Flask, render_template, request, redirect, url_for, session, abort, Response, make_response
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash
 from models import db, User, Product, ProductImage, SiteSettings, BlockedIP, LoginAttempt
@@ -72,9 +72,64 @@ def check_ip_block():
         if BlockedIP.query.filter_by(ip_address=ip).first():
             abort(403, "Access denied: your IP address has been blocked by the administrator.")
 
+TRANSLATIONS = {
+    'et': {
+        'nav_home': 'Kodu',
+        'nav_products': 'Kõik tooted',
+        'page_title_home': 'Käsitööehted Eestis | Kramlill',
+        'meta_desc_home': 'Avasta Kramlill käsitsi valmistatud kaelakeed, käevõrud ja unikaalsed ehted. Eesti käsitööehted endale või kingituseks.',
+        'h1_home': 'Kramlill käsitööehted',
+        'intro_home': 'Kramlill loob Eestis käsitsi valmistatud kaelakeesid, käevõrusid ja teisi unikaalseid ehteid. Iga ehe on loodud hoolega ning sobib nii igapäevaseks kandmiseks kui ka eriliseks kingituseks.',
+        'order_btn': 'Telli',
+        'no_image': 'Pole pilti',
+        'no_products': 'Täiendavaid tooteid pole veel saadaval.',
+        'available_at': 'Saadaval:',
+        'order_popup_default': 'Tellimiseks helista või saada meile sõnum.',
+        'page_title_products': 'Käsitöö kaelakeed ja käevõrud | Kramlill',
+        'meta_desc_products': 'Vaata Kramlill käsitööehete valikut: unikaalsed kaelakeed, käevõrud ja muud käsitsi valmistatud ehted.',
+        'h1_products': 'Käsitööehted',
+        'search_placeholder': 'Otsi tooteid...',
+        'search_clear': 'Kustuta',
+    },
+    'en': {
+        'nav_home': 'Home',
+        'nav_products': 'All Products',
+        'page_title_home': 'Handmade Jewelry Estonia | Kramlill',
+        'meta_desc_home': 'Discover Kramlill\'s handmade necklaces, bracelets and unique jewelry. Estonian handmade jewelry for yourself or as a gift.',
+        'h1_home': 'Handmade Jewelry by Kramlill',
+        'intro_home': 'Kramlill creates handmade necklaces, bracelets and other unique jewelry in Estonia. Each piece is crafted with care — perfect for everyday wear or as a special gift.',
+        'order_btn': 'Order',
+        'no_image': 'No Image',
+        'no_products': 'No catalog products available yet.',
+        'available_at': 'Available at:',
+        'order_popup_default': 'You can order by calling us directly or sending us a DM.',
+        'page_title_products': 'Handmade Necklaces & Bracelets | Kramlill',
+        'meta_desc_products': 'Browse Kramlill\'s handmade jewelry collection: unique necklaces, bracelets and other handcrafted pieces.',
+        'h1_products': 'Handmade Jewelry',
+        'search_placeholder': 'Search products...',
+        'search_clear': 'Clear',
+    },
+}
+
 @app.context_processor
 def inject_csrf_token():
     return dict(csrf_token=session.get('csrf_token'))
+
+@app.context_processor
+def inject_language():
+    lang = request.cookies.get('lang', 'et')
+    if lang not in ('et', 'en'):
+        lang = 'et'
+    return dict(lang=lang, t=TRANSLATIONS[lang])
+
+@app.route('/set-language/<lang>')
+def set_language(lang):
+    if lang not in ('et', 'en'):
+        lang = 'et'
+    referrer = request.referrer or '/'
+    resp = make_response(redirect(referrer))
+    resp.set_cookie('lang', lang, max_age=60 * 60 * 24 * 365, samesite='Lax')
+    return resp
 
 
 # Upload Config
@@ -124,7 +179,8 @@ def products():
         ).all()
     else:
         all_products = Product.query.all()
-    return render_template('products.html', products=all_products, search=search_query)
+    settings = SiteSettings.query.get(1)
+    return render_template('products.html', products=all_products, search=search_query, settings=settings)
 
 @app.route('/admin/reset-lockout')
 def reset_lockout():
@@ -240,9 +296,11 @@ def add_product():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         description = request.form.get('description', '').strip()
+        description_en = request.form.get('description_en', '').strip()
         price_val = request.form.get('price', '0')
         stock_val = request.form.get('stock', '0')
         where_to_get = request.form.get('where_to_get', '').strip()
+        where_to_get_en = request.form.get('where_to_get_en', '').strip()
         instagram_url = request.form.get('instagram_url', '').strip()
         phone = request.form.get('phone', '').strip()
         category = request.form.get('category', 'Normal').strip()
@@ -272,10 +330,12 @@ def add_product():
         new_prod = Product(
             name=name,
             description=description,
+            description_en=description_en or None,
             price=price,
             stock=stock,
             image_filename=image_filename,
             where_to_get=where_to_get,
+            where_to_get_en=where_to_get_en or None,
             instagram_url=instagram_url,
             phone=phone,
             category=category
@@ -302,7 +362,9 @@ def edit_product(product_id):
     if request.method == 'POST':
         product.name = request.form.get('name', '').strip()
         product.description = request.form.get('description', '').strip()
+        product.description_en = request.form.get('description_en', '').strip() or None
         product.where_to_get = request.form.get('where_to_get', '').strip()
+        product.where_to_get_en = request.form.get('where_to_get_en', '').strip() or None
         product.instagram_url = request.form.get('instagram_url', '').strip()
         product.phone = request.form.get('phone', '').strip()
         category = request.form.get('category', 'Normal').strip()
@@ -403,10 +465,38 @@ def admin_settings():
         settings.instagram_url = request.form.get('instagram_url', '').strip() or None
         settings.facebook_url = request.form.get('facebook_url', '').strip() or None
         settings.email = request.form.get('email', '').strip() or None
+        settings.order_popup_text = request.form.get('order_popup_text', '').strip() or None
+        settings.order_popup_text_en = request.form.get('order_popup_text_en', '').strip() or None
         db.session.commit()
         return redirect(url_for('admin_settings'))
 
     return render_template('admin/settings.html', settings=settings)
+
+@app.route('/sitemap.xml')
+def sitemap():
+    xml = '''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://kramlill.ee/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://kramlill.ee/products</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>'''
+    return Response(xml, mimetype='application/xml')
+
+@app.route('/robots.txt')
+def robots():
+    txt = '''User-agent: *
+Allow: /
+Disallow: /admin/
+
+Sitemap: https://kramlill.ee/sitemap.xml'''
+    return Response(txt, mimetype='text/plain')
 
 if __name__ == '__main__':
     # ponytail: simple sqlite initialisation in app if not seeded
